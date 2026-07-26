@@ -1,0 +1,48 @@
+Spring Boot & Microservices
+Optimizing slow startup time: Use Lazy Initialization to ensure only required beans are created at startup .
+
+Debugging outdated cache data: Check if the cache is implemented with a Key and verify that update operations (PUT/POST) use @CachePut to refresh data.
+Handling request timeouts under load: Investigate the Load Balancer, optimize inefficient code (like 
+ loops), and implement Resilience4j for circuit breaking/timeout management .
+
+Spring Security public vs. protected endpoints: Use SecurityFilterChain with requestMatchers to configure .permitAll() for public URLs and .authenticated() for others (4:52).
+
+Local vs. Production database connection issues: Verify Config Server settings, confirm the correct Spring Profile is active, and check connection pool/SSL settings (7:16).
+
+Improving slow API performance with large datasets: Implement Pagination to return data in smaller chunks (8:54).
+
+Securing sensitive configurations: Move credentials to a Config Server or use Kubernetes ConfigMaps/Secrets (9:39).
+
+Scheduled job running twice: Check for multiple application instances or redundant scheduling configurations (11:04).
+
+Handling large file upload failures: Configure spring.servlet.multipart.max-file-size in application.properties (12:29).
+
+Upgrading Spring Boot (bean overriding): Use @Primary, @Qualifier, or exclude specific auto-configuration classes (13:42).
+
+API returning empty JSON: Ensure DTOs are mapped correctly and check for @JsonInclude(JsonInclude.Include.NON_NULL) annotations (15:24).
+
+Centralized Configuration: Implement a dedicated Spring Cloud Config Server (16:48).
+
+Checkout process design: A sequential flow involving authentication, cart management, payment service integration, order confirmation, and notification services (17:53).
+
+Multiple auto-configuration beans: Results in a BeanDefinitionOverrideException unless resolved with @Primary or @Qualifier (19:12).
+
+Missing active profile: The application defaults to application.properties; if missing, it will fail to start (20:30).
+
+Core Java
+Why is String immutable? Security and memory efficiency (String pool optimization) (22:42).
+
+Mutable String alternatives: StringBuilder (not thread-safe) and StringBuffer (thread-safe) (23:42).
+
+Internal working of HashMap: Uses hashing to calculate bucket index. In Java 8+, it uses a Linked List until size 8, then converts to a Red Black Tree for collision handling (24:05).
+
+ConcurrentHashMap vs HashMap: ConcurrentHashMap locks at the bucket/entry level, allowing multiple threads to access different segments concurrently (26:11).
+
+Memory storage of variables: Static variables exist in the Method Area (or metaspace), while instance variables reside in the Heap inside objects (27:06).
+
+Design Patterns:
+Builder Pattern: Used to avoid multiple constructors for classes with many optional fields (28:45).
+
+Singleton Pattern: Ensures one object instance. The Enum-based implementation is recommended because it is thread-safe by default (29:45).
+
+Immutable Class design: Class must be final, fields private final, only provide constructor/getters, and no setters 
