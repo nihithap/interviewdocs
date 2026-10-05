@@ -1,0 +1,34 @@
+Spring Boot + Microservices Interview Q&A
+Target: 5 years experience, Java Full Stack Developer | Based on Spring Boot 3.2.x
+Answer format to practise: Definition → Why → Internals → Code/Example → Production angle → Trade-
+offs.
+Module 1: Spring & Boot Fundamentals
+1. Spring Framework vs Spring Boot? Spring is the core IoC/DI container plus modules (MVC, Data, Security,
+AOP). Boot is an opinionated layer on top: starters, auto-configuration, embedded server, externalized config
+and Actuator, so you get a production-ready app with minimal setup.
+2. What is a starter? A curated dependency descriptor (e.g. spring-boot-starter-web brings Spring MVC,
+Jackson, validation and embedded Tomcat). It removes version and compatibility juggling because the Boot
+BOM manages versions.
+3. How does the embedded server work? The server (Tomcat by default for MVC) runs inside the app's JVM
+as a library, started by SpringApplication.run() . You ship one executable (fat) JAR with java -jar .
+Swap to Jetty/Undertow by excluding the Tomcat starter and adding the other.
+4. What does @SpringBootApplication contain? @SpringBootConfiguration (a @Configuration ),
+@EnableAutoConfiguration , and @ComponentScan (from the main class's package downward). Hence
+the main class belongs in the root package; otherwise your beans/entities aren't found.
+5. What happens in SpringApplication.run() ? Determines web app type (servlet/reactive/none), loads
+listeners and initializers, prepares the Environment (properties and profiles), creates the
+ApplicationContext , runs component scan and auto-configuration, registers beans, starts the embedded
+server, then runs CommandLineRunner / ApplicationRunner beans.
+6. MVC vs WebFlux? MVC is thread-per-request and blocking, simple and fine for most CRUD with JDBC/JPA.
+WebFlux is non-blocking (Reactor Mono / Flux , Netty), best for high-concurrency I/O-bound work and
+streaming. If both are on the classpath, MVC wins.
+Module 2: Auto-configuration
+7. How does auto-configuration work internally? Boot reads META-
+INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports from jars on
+the classpath. Each listed class is a @Configuration guarded by conditions ( @ConditionalOnClass ,
+@ConditionalOnMissingBean , @ConditionalOnProperty ). Only those whose conditions pass get
+registered.
+8. What is "backing off"? Auto-configured beans typically use @ConditionalOnMissingBean . If you define
+your own DataSource or ObjectMapper , Boot's default steps aside.
+9. How do you debug it? Run with --debug or debug=true to print the conditions report (positive/negative
+matches), or hit Actuator /conditions .
