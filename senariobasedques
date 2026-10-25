@@ -92,6 +92,56 @@ Introduced in Java 8, the Stream API revolutionized how developers manipulate da
 ------------------------------
 
 
+Here are the answers to the Spring Boot and Microservices interview questions shown in the image:
+## 1. How do you implement API rate limiting in Spring Boot?
+API rate limiting can be implemented at different levels depending on your architecture:
+
+* API Gateway Level (Recommended for Microservices): You can use Spring Cloud Gateway integrated with Redis. By configuring the RequestRateLimiter gateway filter factory, Spring Cloud Gateway utilizes a Token Bucket algorithm backed by Redis to track and limit request counts globally across your services.
+* Application/Service Level (Standalone Apps): You can use lightweight fault-tolerance libraries like Resilience4j. By adding the @RateLimiter annotation to your service methods, you can easily configure the maximum number of requests allowed during a specific time window via your application.yml file.
+* Custom Filter / Interceptor: For simple monolithic use cases, you can use the Bucket4j library combined with a custom Servlet Filter or Spring Interceptor to intercept incoming HTTP requests and track tokens per client IP or API key.
+
+------------------------------
+## 2. How do you deploy Spring Boot microservices using Docker?
+Deploying a Spring Boot microservice with Docker typically follows a three-step process:
+
+   1. Build the Artifact: Compile your application into a runnable JAR file using Maven or Gradle:
+   
+   mvn clean package -DskipTests
+   
+   2. Create a Dockerfile: Write a Dockerfile in the root of your project directory to define the container environment:
+   
+   FROM eclipse-temurin:17-jdk-jammyARG JAR_FILE=target/*.jarCOPY ${JAR_FILE} app.jarENTRYPOINT ["java", "-jar", "/app.jar"]
+   
+   3. Build and Run the Container: Use Docker commands to build the image and spin up the container:
+   
+   docker build -t my-microservice:v1 .
+   docker run -d -p 8080:8080 --name microservice-container my-microservice:v1
+   
+   
+Note: In production environments with multiple microservices, Docker Compose or Kubernetes is used to coordinate, network, and manage all your containers together.
+------------------------------
+## 3. What is the role of Config Server, Discovery Server, and Gateway in Spring Cloud architecture?
+These three components form the backbone of a robust, scalable Spring Cloud microservices ecosystem:
+
+| Component | Main Role & Responsibility |
+|---|---|
+| Config Server | Centralizes application configuration. Instead of managing application.properties files inside every single deployment package, all configurations are stored in a central repository (like Git). Microservices fetch their environment-specific parameters at startup. |
+| Discovery Server (e.g., Netflix Eureka) | Acts as a dynamic phonebook for services. Because containerized instances constantly spin up and down with changing dynamic IP addresses, microservices "register" themselves here. Other services look up this registry to find and communicate with each other dynamically. |
+| API Gateway (e.g., Spring Cloud Gateway) | Acts as the single entry point for all clients. It handles routing to specific microservices, hides internal architectural details, and centralizes cross-cutting concerns like security, authentication, CORS configuration, logging, and rate limiting. |
+
+------------------------------
+## 4. How do you handle version compatibility across microservices?
+Managing breaking changes and versioning is one of the most critical aspects of maintaining distributed systems. Common approaches include:
+
+* API Versioning Strategies: Implement explicit versioning on external and internal endpoints using URI versioning (e.g., /api/v1/users vs /api/v2/users), Custom Headers (e.g., X-API-Version: 2), or Media Type/Accept Headers.
+* Backward Compatibility (The Robustness Principle): Ensure your Data Transfer Objects (DTOs) are resilient to changes. For instance, design JSON parsers to ignore unknown incoming fields instead of throwing exceptions, allowing older services to safely interact with newer ones.
+* Parallel Deployments (Canary / Blue-Green): Deploy a new version of a microservice alongside the old one. Use your API Gateway to route a small percentage of traffic to the new version to verify compatibility before completely decommissioning the older version.
+* Contract Testing: Use tools like Spring Cloud Contract or Pact. This allows consuming services to define "contracts" that the producing services must satisfy, catching integration and compatibility bugs early in the CI/CD pipeline before code hits production.
+
+------------------------------
+
+
+
 
 
 
