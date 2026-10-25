@@ -60,3 +60,38 @@ Are you trying to choose specific tools for an architecture you're building righ
 * 
 
 
+Here are the detailed explanations for the three Java questions presented in the image:
+## 1. Internal Structure of a Class Loader
+The Java ClassLoader is a crucial part of the Java Virtual Machine (JVM) responsible for dynamically loading Java classes into memory during runtime. It does not load all classes at once; instead, it loads them when they are referenced by the application.
+Its operations are governed by three core mechanisms:
+
+* Delegation Model: When a class loader receives a request to load a class, it delegates the task to its parent class loader first. Only if the parent cannot find the class does the child attempt to load it. The hierarchy consists of:
+1. Bootstrap Class Loader: The root loader (written in native C/C++), which loads core platform classes from java.base.
+   2. Platform Class Loader: Loads non-core platform extension classes.
+   3. Application Class Loader: Loads application-specific classes located on the environment classpath.
+* Visibility Principle: A child class loader can see classes loaded by its parent class loader, but a parent loader cannot see classes loaded by its child.
+* Uniqueness Property: A class loaded by a parent loader should not be re-loaded by a child loader, ensuring that duplicate classes are not created in memory.
+
+------------------------------
+## 2. How try-with-resources Works
+Introduced in Java 7, try-with-resources is a feature that ensures resources (like file streams, database connections, or network sockets) are automatically closed at the end of the statement block.
+
+* The Interface: To be used within a try-with-resources statement, a resource class must implement the java.lang.AutoCloseable interface (or its sub-interface java.io.Closeable). This interface requires implementing a single close() method.
+* Under the Hood: Behind the scenes, the Java compiler automatically decompiles the try-with-resources block into standard try-catch-finally blocks. It injects code that checks if the resource is null, and if not, calls its .close() method inside a hidden finally block.
+* Suppressed Exceptions: If an exception occurs both within the try block and when trying to close the resource, the original try exception is thrown to the caller, while the closure exception is attached to it as a "suppressed exception," preventing it from being lost.
+
+------------------------------
+## 3. How the Stream API Improves Collection Processing
+Introduced in Java 8, the Stream API revolutionized how developers manipulate data collections by replacing traditional imperative loops with declarative pipelines.
+
+* Declarative Style (What vs. How): Traditional loops (for, while) require you to write the exact steps to filter or modify data. The Stream API lets you state what you want to achieve using a fluent chain of methods, resulting in cleaner, highly readable code.
+* Lazy Evaluation: Streams consist of intermediate operations (like filter(), map()) and terminal operations (like collect(), forEach()). Intermediate operations are lazy; they do not execute until a terminal operation is called. This optimizes performance by processing data in a single pass.
+* No Structural Changes: A stream is a wrapper around a data source (like a List or a Set). It does not store data or modify the original structure; it merely processes data and passes the result forward.
+* Easy Parallelism: Processing a collection across multiple CPU cores via traditional multithreading is complex and error-prone. The Stream API allows you to easily switch to parallel execution by replacing .stream() with .parallelStream(), delegating the heavy lifting to the ForkJoinPool.
+
+------------------------------
+
+
+
+
+
