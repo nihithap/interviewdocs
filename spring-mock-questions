@@ -1,0 +1,33 @@
+API & Data Management
+
+Status code for a successful `PUT` request? (0:58):
+Approach: Return 200 OK for a successful update. If the user does not exist, return 404 Not Found. If the operation is successful but yields no content, 204 No Content is appropriate (1:39).
+How to fix CORS errors? (1:47):
+Approach: Enable CORS configuration in Spring Security or add the `@CrossOrigin` annotation on your controller methods to allow cross-origin requests from specific ports (2:09-2:29).
+Handling 50,000+ records? (2:32):
+Approach: Implement Pagination using the `Pageable` interface from Spring Data JPA to fetch data in manageable chunks rather than loading everything at once (2:53-3:22).
+Handling idempotency for orders? (5:31):
+Approach: Use an Idempotency Key in the request header. The server checks this key to ensure the same request isn't processed twice due to network retries (5:46-6:19).
+
+Spring Boot Core Concepts
+
+`@Configuration` vs `@Bean`? (10:47):
+Approach: `@Configuration` marks a class for bean definitions, while `@Bean` is used on individual methods to register specific objects in the Spring container (10:52-11:08).
+`@Component` vs `@Service` vs `@Repository`? (12:20):
+Approach: These are specializations of `@Component`. Use `@Repository` for data access objects, as it also provides automatic translation of database-specific exceptions into Spring’s data access exceptions (13:05-13:20).
+Why use `Integer` over `int` in entities? (18:13):
+Approach: Use `Integer` because it is an object type that supports `null`. Primitive `int` defaults to `0`, which can hide missing data (18:26-18:59).
+
+Performance & Troubleshooting
+
+Fixing slow startup? (13:23):
+Approach: Use Spring Boot Actuator to inspect bean initialization times, check for heavy auto-configurations, and avoid wide component scans (14:06-14:13).
+Best log level for production? (22:30):
+Approach: Use `INFO` or `WARN`. Never use `DEBUG` in production as it significantly impacts performance, disk usage, and logging costs (23:37-23:58).
+
+Coding Challenge
+
+Longest Palindromic Substring? (25:31):
+Approach: Use the "Expand Around the Center" technique. Iterate through the string, treat every character (or gap between characters) as a center, and expand outward as long as the characters match (30:28-31:05).
+
+https://youtu.be/k1naik37o48?si=hYE1AqcdNS72EgpJ
