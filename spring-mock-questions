@@ -280,4 +280,3 @@ Scenario D: Migrating Spring Boot 2.7 to 3.x
 	• Jakarta EE Namespace Migration: The single biggest risk is the absolute migration from javax.* to jakarta.* packages for all servlet, validation, and persistence hooks. Every import statement must be validated.
 	• Spring Security 6.x: The security configuration format changed significantly. The WebSecurityConfigurerAdapter is completely gone. Security configurations must now be built entirely using functional SecurityFilterChain beans.
 	• Auto-Configuration Changes: The legacy META-INF/spring.factories file layout for registering auto-configurations is deprecated in favor of the new .imports file file architecture.
-Would you like to try a mock interview scenario on one of these specific topics, or should we write out the Java code configuration for a resilient circuit breaker or the SecurityFilterChain migration?
