@@ -1,0 +1,517 @@
+What is a subarray:
+A subarray is a continues sequence of elements from the start to the end of the array, obtained by sliding over a window
+
+
+
+Sort an array where a subarray of a sorted array is in reverse order
+Given an array of N numbers where a subarray is sorted in descending order and rest of the numbers in the array are in ascending order. The task is to sort an array where a subarray of a sorted array is in reversed order. 
+
+// Online Java Compiler
+// Use this editor to write, compile and run your Java code online
+
+class Main {
+    public static void main(String[] args) {
+        int a[]={2 ,5, 65, 55, 50, 70, 90 };
+        int n= a.length;
+        int startindex =-1;
+        int lastindex = -1;
+        int temp;
+        
+        for(int i=0;i<n;i++){
+            if(a[i]>a[i+1]){
+                startindex=i;
+                break;
+            }
+        }
+        
+        for(int i=startindex;i<n;i++){
+            if(a[i]<a[i+1]){
+                lastindex=i;
+                break;
+            }
+        }
+        
+      while(startindex <= lastindex){
+          temp = a[startindex];
+          a[startindex] = a[lastindex];
+          a[lastindex] = temp;
+          startindex++;
+          lastindex--;
+      }
+            for(int i=0;i<n ;i++){
+          System.out.print(a[i]+" ");
+      }
+    }
+}
+Count subarrays with all elements greater than K
+Last Updated : 11 Jul, 2025
+•	
+•	
+•	
+Given an array of n integers and an integer k, the task is to find the number of subarrays such that all elements in each subarray are greater than k.
+Examples: 
+Input: arr[] = {3, 4, 5, 6, 7, 2, 10, 11}, k= 5 
+Output: 6 
+The possible subarrays are {6}, {7}, {6, 7}, {10}, {11} and {10, 11}.
+Input: arr[] = {8, 25, 10, 19, 19, 18, 20, 11, 18}, k = 13 
+Output: 12  
+class Main {
+    public static void main(String[] args) {
+       
+       int a[]={3, 4, 5, 6, 7, 2, 10, 11};
+       int n = a.length;
+       int k=5;
+       int count =0;
+       for(int i=0;i<n;i++){
+           for(int j=i;j<n;j++){
+               if(a[j]<=k) break;
+               count++;
+           }
+       }
+       System.out.println(count);
+    }
+}
+
+Maximum length of the sub-array whose first and last elements are same
+Given a character array arr[] containing only lowercase English alphabets, the task is to print the maximum length of the subarray such that the first and the last element of the sub-array are same.
+
+
+import java.util.*;
+class Main {
+    public static void main(String[] args) {
+        char a[] = {'c','h','r','e','i','m','e','s'};
+        int n = a.length;
+        int[] first = new int[26];
+        int[] last  = new int[26];
+        Arrays.fill(first,-1);
+        Arrays.fill(last,-1);
+        for(int i=0;i<n;i++){
+            int idx = a[i]-'a';
+            if(first[idx]==-1){
+                first[idx]=i;
+            }
+            last[idx] =i ;
+        }
+        
+        int maxlen = 0;
+        for(int i=0;i<26;i++){
+            if(first[i] != -1)
+            maxlen = Math.max(maxlen, last[i]-first[i]+1);
+   }
+  System.out.println(maxlen);
+    }
+}
+
+Sum of all subarrays of size K
+Given an array arr[] and an integer K, the task is to calculate the sum of all subarrays of size K.
+public class Main {
+    public static void main(String[] args) {
+        int a[] = {1, 2, 3, 4, 5, 6};
+        int k = 3;
+        int n = a.length;
+        int sum =0;
+        for(int i=0;i<k;i++){
+        sum += a[i];
+        }
+        System.out.println("sum "+sum + " ");
+                for(int i=k;i<n;i++){
+            sum +=a[i]-a[i-k];
+             System.out.print(sum + " ");
+        }
+    }
+}
+Find Most Frequent Vowel and Consonant// Online Java Compiler
+// Use this editor to write, compile and run your Java code online
+import java.util.*;
+class Main {
+    public static void main(String[] args) {
+        
+        String s = "abdcdjaksdewzru";
+       String vowels = "aeiou";
+        int volcnt=0;
+        int consonuntcnt=0;
+       
+        int frecnt[] = new int[26];
+        
+        for(char c : s.toCharArray()){
+           frecnt[c-'a']++;
+        }
+        
+         
+         for (int i = 0; i < frecnt.length; i++) {
+            char currentChar = (char) (i + 'a');
+            System.out.print(frecnt[i]);
+            System.out.print(currentChar+ " ");
+            
+            if(vowels.indexOf(currentChar) !=-1){
+             volcnt =  Math.max(volcnt,frecnt[i]);
+            }else{
+                consonuntcnt=Math.max(consonuntcnt,frecnt[i]);
+            }
+         }
+          System.out.print(volcnt + " ");
+          System.out.print(consonuntcnt);
+        
+    }
+}
+1935. Maximum Number of Words You Can Type
+Easy
+Topics
+ Companies
+Hint
+There is a malfunctioning keyboard where some letter keys do not work. All other keys on the keyboard work properly.
+Given a string text of words separated by a single space (no leading or trailing spaces) and a string brokenLetters of all distinct letter keys that are broken, return the number of words in text you can fully type using this keyboard.
+ 
+Example 1:
+Input: text = "hello world", brokenLetters = "ad"
+Output: 1
+Explanation: We cannot type "world" because the 'd' key is broken.
+class Solution {
+    public int canBeTypedWords(String text, String brokenLetters) {
+        String[] words= text.split(" ");
+        int no_of_words = 0;
+        boolean[] isBroken= new boolean[26];
+        for(char c : brokenLetters.toCharArray()){
+            isBroken[c -'a']= true;
+        }
+        for(String word : words){
+             boolean canTypewords = true;
+            for(char c : word.toCharArray()){
+                 if(isBroken[c -'a']){
+                    canTypewords = false;
+                    break;
+                 }
+            }
+            if(canTypewords){
+                no_of_words++;
+            }
+        }
+       
+        return no_of_words;
+    }
+}
+
+----------------- JAVA 8 --------------------------------------------
+Separate odd and even numbers in a list of integers
+Using partioningBy – key,value key is always Boolean
+List<Integer> a = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+a.stream()
+         .collect(Collectors.partitioningBy(n -> n % 2 == 0))
+         .forEach((key, value) -> System.out.println(key + "=" + value));
+o/p
+false=[1, 3, 5, 7, 9]
+true=[2, 4, 6, 8, 10]
+
+groupingBy:
+a.stream() .collect(Collectors.groupingBy(n -> n % 2 == 0 ? "even" : "odd")) .forEach((key, value) -> System.out.println(key + "=" + value));
+o/p
+odd=[1, 3, 5, 7, 9]
+even =[2, 4, 6, 8, 10]
+
+Find Numbers Starting with '1': Given a list of integers, find all the numbers that start with the digit 1
+List<Integer> a = List.of(123, 213, 135, 4,167);
+String result = a.stream().map(String::valueOf).filter(s -> s.startsWith("1")).collect(Collectors.joining(", "));
+ System.out.println(result);
+
+Given a list of strings, transform all elements into uppercase and collect them into a new list.
+List<String> s = List.of("start","last","sheep");
+ String result =       s.stream().map(String::toUpperCase).collect(Collectors.joining(","));
+Square and Filter: Given a list of integers, map each number to its cube (or square) and filter out numbers that are greater than 50.
+List<Integer> s = List.of(15,4,6,9,12);
+ s.stream().map(n -> n*n).filter(n -> n >50).forEach(System.out::println);
+
+Find Maximum Value: Given a list of integers, find the maximum value present using the Stream API
+  List<Integer> s = List.of(15,4,6,9,12);
+ // s.stream()
+ //         .max(Integer::compareTo)
+ //         .ifPresent(System.out::println); 
+        //s.stream().reduce(Integer::max).ifPresent(System.out::println);
+        // int s[] = {2, 76, 4, 9, 30};
+        // int max = 0 ;
+        // for(int i =0 ; i < s.length; i++){
+        //     if(max < s[i]){
+        //         max = s[i];
+        //     }
+        // }
+        // System.out.println(max);
+Find the sum of the list :
+int r = s.stream().distinct().reduce((a,b) -> a+b).orElse(0);
+
+int r = s.stream()
+         .distinct()
+         .mapToInt(Integer::intValue) // Converts to IntStream
+         .sum();                      // Returns an int (0 if empty)
+
+
+
+
+
+o/p
+{A=[Alice, Anna], B=[Bob, Bay], C=[cherry]}
+
+List<String> names = Arrays.asList("Alice", "Bob", "", null, "Bay", "Anna", "cherry");
+
+Map<String, List<String>> grouped = names.stream()
+    .filter(n -> n != null && !n.trim().isEmpty())
+    .collect(Collectors.groupingBy(n -> n.substring(0, 1).toUpperCase()));
+
+System.out.println(grouped);
+
+1. Given a list of integers, write a Java 8 program to separate the odd and even numbers into two separate lists.
+    List<Integer> ev = List.of(1,5,3,43,56,7,8,98);
+     Map<Boolean,List<Integer>> parlis =    
+      ev.stream().collect(Collectors.partitioningBy(n -> n%2==0));
+        System.out.println(parlis.get(true));
+
+2. Write a Java 8 program to remove duplicate elements from a list using the stream API and lambda expressions.
+List<Integer> parlis =    
+      ev.stream().distinct().collect(Collectors.toList());
+Write a Java 8 program to find the frequency of each character in a given string using the stream API and collectors.
+String s = "India is my country";
+        char c[]= s1.toCharArray();
+      Map<Character,Integer> fre = new HashMap<>();
+        for (char ch : c) {
+            fre.put(ch, fre.getOrDefault(ch, 0) + 1);
+        }
+String.chars() to convert into character stream
+s.chars()
+             .mapToObj(c -> (char) c)
+             .filter(c -> c != ' ') // Removes space characters
+             .forEach(c -> freq.merge(c, 1, Integer::sum));
+
+Write a Java 8 program to sort a given list of decimal numbers in reverse order.
+List<Double> dec = List.of(0.12,7.23,9.2,4.3,0.08);
+List<Double> dec1 =        dec.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+
+Given a list of strings, write a Java 8 program to join the strings with '[' as a prefix, ']' as a suffix, and ',' as a delimiter.
+List<String> str = List.of("cat","mouse","bat");
+String str1 =        str.stream().collect(Collectors.joining(",","[","]"));
+  System.out.println(str1);
+
+Write a Java 8 program to print the numbers from a given list of integers that are multiples of 5.
+List<Integer> x = List.of(2,4,6,67,5,10,25,95,37,55);
+List<Integer> x1 =x.stream().filter(n -> n%5==0).collect(Collectors.toList());
+        System.out.println(x1);
+Given a list of integers, write a Java 8 program to find the maximum and minimum numbers in the list.
+List<Integer> x = List.of(2,4,6,67,5,10,25,95,37,55);
+IntSummaryStatistics x1 = x.stream().collect(Collectors.summarizingInt(Integer::intValue));
+        System.out.println(x1.getMax());
+        System.out.println(x1.getMin());
+
+Write a Java 8 program to merge two unsorted arrays into a single sorted array using the stream API.
+Write a Java 8 program to merge two unsorted arrays into a single sorted array without duplicates.
+
+int x[] = {2,4,6,67,5};
+int y[]={10,25,95,37,55};
+int z[] = IntStream.concat(Arrays.stream(x),Arrays.stream(y)).distinct().sorted().toArray();
+System.out.println(Arrays.toString(z));
+
+Write a Java 8 program to get the three maximum and three minimum numbers from a given list of integers.
+List<Integer> numbers = Arrays.asList(45, 12, 89, 3, 67, 94, 21, 55, 7, 88);
+
+List<Integer> x=        numbers.stream().sorted().limit(3).collect(Collectors.toList());
+
+        List<Integer> y=  numbers.stream()
+                .sorted(Comparator.reverseOrder())
+                .limit(3)
+                .collect(Collectors.toList());
+
+        System.out.println(x);
+          System.out.println(y);
+
+Anagrams:
+
+String word1 = "Listen";
+        String word2 = "Silent";
+
+        String s1 = word1.replaceAll("\\s+","").toLowerCase();
+        String s2 = word2.replaceAll("\\s+","").toLowerCase();
+
+
+        String sor1 = s1.chars()
+                .sorted()
+                .mapToObj(c -> String.valueOf((char) c))
+                .collect(Collectors.joining());
+        String sor2 = s2.chars()
+            .sorted()
+            .mapToObj(c -> String.valueOf((char)c))
+            .collect(Collectors.joining());
+
+        System.out.println(sor1.equals(sor2));
+Write a Java 8 program to find the sum of all digits of a given number.
+
+int n = 223456;
+int s = 
+IntStream.iterate(n , num -> num > 0 ,num -> num/10).map(num -> num%10).sum();
+
+Write a Java 8 program to find the second largest number in an integer array.
+
+Arrays.stream(numbers).distinct().boxed().sorted(Collections.reverseOrder()).skip(1).findFirst().orElse(0);
+
+Write a Java 8 program to sort a given list of strings according to the increasing order of their length.
+String[] s = {"banana","cat", "bash", "bottom"};
+        List<String> slit =
+Arrays.stream(s).sorted(Comparator.comparingInt(String::length)).collect(Collectors.toList());
+  List<String> slitrev =
+Arrays.stream(s).sorted(Comparator.comparingInt(String::length).reversed()).collect(Collectors.toList());
+
+Write a Java 8 program to find the sum and average of all elements in an integer array.
+int[] a = {1,4,5,3,65,7,3,8,31};
+
+    int s =    Arrays.stream(a).sum();
+     double avg =   Arrays.stream(a).average().orElse(0);
+        List<Integer> numbers = Arrays.asList(10, 20, 30, 40, 50);
+    double avg1 =   numbers.stream().mapToInt(Integer::valueOf).average().orElse(0);
+        System.out.println(s);
+        
+        System.out.println(avg);
+         System.out.println(avg1);
+
+Write a Java 8 program to find the common elements between two arrays using streams.
+
+int[] a = {1,4,5,3,65,7,3,8,31};
+    int[]  b = {5,1,98,52,3,65};
+ int[]  comm =       
+Arrays.stream(a).distinct().filter(arr1 -> Arrays.stream(b).anyMatch(arr2 -> arr2==arr1)).toArray();
+
+(Or)
+        // Set<Integer> s = Arrays.stream(b).boxed().collect(Collectors.toSet());
+        // int[]  comm = Arrays.stream(a).filter(s::contains).distinct().toArray();
+     System.out.println(Arrays.toString(comm));  
+
+Write a Java 8 program to reverse each word of a given string using the stream API and lambda expressions.
+String s = "India is my country";
+
+  String rev =     Arrays.stream(s.split(" ")).map(w -> new StringBuilder(w).reverse().toString()).collect(Collectors.joining(" "));
+System.out.println(rev);
+
+Write a Java 8 program to find the sum of the first 10 natural numbers using streams.
+int sum = IntStream.rangeClosed(1, 10) .sum();
+int sum = IntStream.rangeClosed(1,10).reduce(0,(a,b) -> a+b);
+
+Write a Java 8 program to reverse an integer array.
+int[] a = {4,6,4,3,5,6,78};
+    int[] b =     IntStream.range(0,a.length)
+        .map(i -> a[a.length-1-i]).toArray();
+        System.out.println(Arrays.toString(b));
+Write a Java 8 program to print the first 10 even numbers.
+int[] evn= IntStream.rangeClosed(1,10).filter(n -> n%2==0).toArray();
+        System.out.println(Arrays.toString(evn));
+Write a Java 8 program to print the first 10 odd numbers.
+Int[] odd = IntStream.rangeClosed(1,10).filter(n -< n%2 !=0).toArrays();
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class MostRepeatedElement {
+    public static void main(String[] args) {
+        String[] items = {"apple", "banana", "apple", "cherry", "banana", "apple"};
+
+        // 1. Convert array to stream, group elements by identity, and count them
+        Optional<String> mostRepeated = Arrays.stream(items)
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())) // Returns Map<String, Long>
+                .entrySet()
+                .stream() // Stream the Map entries
+                .max(Map.Entry.comparingByValue()) // Find entry with maximum count
+                .map(Map.Entry::getKey); // Extract the element itself
+
+        // 2. Print the result safely
+        if (mostRepeated.isPresent()) {
+            System.out.println("Most repeated element: " + mostRepeated.get());
+        } else {
+            System.out.println("The array is empty.");
+        }
+    }
+}
+
+--
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class MostRepeatedPrimitive {
+    public static void main(String[] args) {
+        int[] numbers = {10, 20, 30, 20, 40, 20, 10, 30};
+
+        Optional<Integer> mostRepeated = Arrays.stream(numbers)
+                .boxed() // Crucial step: Converts int to Integer stream
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey);
+
+        mostRepeated.ifPresent(num -> System.out.println("Most repeated primitive number: " + num));
+    }
+}
+
+Given a list of strings, write a Java 8 program to find the strings that start with a number.
+
+String[] str = {"2djec","wdfr","3rdfg"};
+        // List<String> sn =
+        // Arrays.stream(str).filter(s -> s!=null && !s.isEmpty()).filter(s -> Character.isDigit(s.charAt(0))).collect(Collectors.toList());
+			or
+List<String> sn =
+Arrays.stream(str).filter(s -> s!=null && s.matches("^[0-9].*")).collect(Collectors.toList());
+System.out.println(sn);
+
+
+Write a Java 8 program to check if a given string is a palindrome using the stream API and lambda expressions.
+
+String str = "coweoc";
+       boolean isPalindrome = IntStream.range(0, str.length() / 2)
+                .noneMatch(i -> str.charAt(i) != str.charAt(str.length() - 1 - i));
+System.out.println(isPalindrome);
+
+Write a Java 8 program to extract duplicate elements from an array.
+int[] primitiveArray = {5, 3, 4, 1, 3, 7, 2, 9, 9, 4};
+Set<Integer> seen = new HashSet<>();
+        Set<Integer> duplicates = Arrays.stream(primitiveArray)
+        .boxed() // Converts int to Integer stream
+        .filter(num -> !seen.add(num))
+        .collect(Collectors.toSet());
+Write a Java 8 program to find the first repeated character in a string.
+Set<Character> seen = new HashSet<>();
+        Set<Character> duplicates = s.chars()
+        .filter(num -> !seen.add(num))
+        .collect(Collectors.toSet());
+
+Write a Java 8 program to find the first repeated character in a string.
+String s = "India";
+Set<Character> seen = new HashSet<>();
+        Set<Character> duplicates = s.chars()
+        .filter(num -> !seen.add(num)).findFirst();
+Write a Java 8 program to get the last element of an array.
+int[] primitiveArray = {5, 3, 4, 1, 3, 7, 2, 9, 9, 4};
+        int last = Arrays.stream(primitiveArray).
+skip(primitiveArray.length-1).findFirst().orElse(0);
+        System.out.println(last);
+
+Write a Java 8 program to extract Unique String starting with "#" from the String array Using Java Streams.
+String[] s = {"last", "#first","most","rope","#rmap"};
+   List<String> sl =  Arrays.stream(s).filter(sr -> sr.startsWith("#")).collect(Collectors.toList());
+        System.out.println(sl);
+
+1.	Write a Java 8 program to calculate the age of a person in years given their birthday.
+2.	import java.time.*;
+3.	class Main {
+4.	    public static void main(String[] args) {
+5.	    LocalDate bd = LocalDate.of(1999,6,26);
+6.	   LocalDate currentdate = LocalDate.now();
+7.	     
+8.	 int ageInYears =
+9.	       Period.between(bd,currentdate).getYears();
+
+
+
+
+
+
+
+
+
