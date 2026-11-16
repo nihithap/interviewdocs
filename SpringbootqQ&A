@@ -1,0 +1,837 @@
+# **Spring Boot – 24 Scenario-Based Interview Questions and Answers**
+
+I reviewed the uploaded transcript and organized its questions into a structured interview-preparation document. The video introduction mentions 25 questions, but the supplied transcript contains **24 complete question-and-answer topics** and ends with Spring WebFlux.
+
+I’ve corrected obvious speech-to-text errors in technical terms, while keeping the answers grounded in the speaker’s explanations. The answers are phrased in the first person so you can use them in a real interview.
+
+# Spring Boot Interview Preparation
+
+## Scenario-Based Questions and Answers for Experienced Java Developers
+
+---
+
+## 1. Transaction Management
+
+### Q1. You added the `@Transactional` annotation, but data is still partially saved when an exception occurs. How would you debug and fix it?
+
+**Answer:**
+
+First, I would check where the `@Transactional` annotation is applied. Ideally, it should be placed on the service-layer method that performs the database operations.
+
+Next, I would check the type of exception being thrown. By default, Spring rolls back transactions for unchecked exceptions, such as `RuntimeException`. For checked exceptions, rollback does not happen automatically.
+
+To handle checked exceptions, I can explicitly configure rollback behavior:
+
+```
+@Transactional(rollbackFor = Exception.class)
+public void saveCustomer() throws Exception {
+    // Database operations
+}
+```
+
+I would also verify the following:
+
+1. The transactional method should generally be public.
+2. The method should be invoked through a Spring-managed bean.
+3. If one method in a class calls another transactional method in the same class, Spring's proxy mechanism may not intercept that internal call.
+
+**Possible fix:** Move the transactional method into another Spring service and invoke it through that bean.
+
+**Key concepts:** `@Transactional`, rollback rules, checked vs unchecked exceptions, Spring proxies, self-invocation.
+
+---
+
+## 2. Performance Optimization
+
+### Q2. Your Spring Boot application works fine under normal traffic, but its response time becomes very slow during high traffic. How would you find the root cause?
+
+**Answer:**
+
+I would first identify where the performance bottleneck is rather than immediately changing the code.
+
+I would investigate:
+
+1. **Application logs:** Look for errors, warnings and unusually long operations.
+2. **API response time:** Identify which endpoints are slow.
+3. **Database query time:** Check whether queries are taking longer than expected.
+4. **CPU and memory usage:** Identify resource bottlenecks.
+5. **Thread usage:** Check whether threads are exhausted or blocked.
+
+I can use tools such as:
+
+- Spring Boot Actuator
+- Splunk
+- Grafana
+- Application profilers
+
+Based on the findings, I would apply the appropriate solution:
+
+- If database queries are slow, optimize queries or add indexes.
+- If the same data is repeatedly fetched, introduce caching.
+- If internal API calls are slow, configure timeouts, retries and circuit breakers.
+- If traffic is consistently high, consider scaling the application.
+
+**Key concepts:** Performance monitoring, Actuator, profiling, database optimization, caching, scalability.
+
+---
+
+## 3. Resilience and Fault Tolerance
+
+### Q3. One microservice calls another microservice using REST, but the second service is sometimes slow or unavailable. How would you handle timeouts, retries and fallback?
+
+**Answer:**
+
+I would use a combination of timeout, retry and fallback mechanisms.
+
+**1. Timeout**
+
+I would configure a fixed timeout so that the calling service does not wait indefinitely for the downstream service.
+
+**2. Retry**
+
+I would retry only for temporary failures. I would avoid too many retries because they can increase the load on an already struggling service.
+
+I can use exponential backoff to increase the waiting time between retries.
+
+**3. Fallback**
+
+If the downstream service remains unavailable, I would provide an alternative response, such as:
+
+- A default response.
+- Previously cached data.
+- A meaningful error message.
+
+I can implement these mechanisms using Resilience4j, which supports timeout, retry, circuit breaker and fallback patterns.
+
+**Key concepts:** Timeout, retry, exponential backoff, fallback, Resilience4j, circuit breaker.
+
+---
+
+## 4. JWT and Security
+
+### Q4. Your JWT token is valid, but the user's role has changed in the database. How would you make sure old permissions are not misused?
+
+**Answer:**
+
+JWT is generally stateless. Once a token is generated, it may contain the user's role information. If the role changes in the database, the old token may still contain the previous permissions.
+
+I would handle this in the following ways:
+
+**1. Short-lived access tokens**
+
+I would configure a short access-token expiry time, for example, 10–15 minutes.
+
+**2. Validate the latest role for sensitive APIs**
+
+For sensitive operations, I can retrieve the latest user role from the database or cache instead of relying only on the token's role claim.
+
+**3. Token versioning**
+
+I can maintain a token version in the database.
+
+- When a token is generated, its version is included in the token.
+- When the user's role changes, I increment the version stored in the database.
+- When an old token is presented, I compare its version with the latest database version.
+- If the versions do not match, I reject the token.
+
+This prevents old permissions from being reused after a role change.
+
+**Key concepts:** JWT, token expiry, authorization, token versioning, role validation.
+
+---
+
+## 5. Caching Strategies
+
+### Q5. Cached data is showing old values even after the database has been updated. How would you fix this?
+
+**Answer:**
+
+This usually happens because the cache is not updated or invalidated after the database update.
+
+First, I would check where `@Cacheable` is used and inspect the database update method.
+
+Whenever the underlying database data changes, the related cache should also be updated or removed.
+
+Spring provides two useful annotations:
+
+**1. `@CacheEvict`**
+
+Removes an existing cache entry.
+
+```
+@CacheEvict(value = "customers", key = "#id")
+public void updateCustomer(Long id) {
+    // Update customer in database
+}
+```
+
+**2. `@CachePut`**
+
+Updates the cache with the new value returned by the method.
+
+```
+@CachePut(value = "customers", key = "#customer.id")
+public Customer updateCustomer(Customer customer) {
+    return customerRepository.save(customer);
+}
+```
+
+I would also verify that the cache key used while reading is consistent with the key used while updating or evicting.
+
+**Key concepts:** `@Cacheable`, `@CacheEvict`, `@CachePut`, cache keys, cache invalidation.
+
+---
+
+## 6. Database Query Optimization
+
+### Q6. Database queries are suddenly increasing because of the N+1 query problem. How would you detect and solve it?
+
+**Answer:**
+
+First, I would enable SQL logging and check how many database queries are executed for a single API request.
+
+In an N+1 query problem:
+
+- The first query retrieves the main records.
+- Additional queries retrieve related records individually.
+
+For example, one query retrieves a list of users, and then a separate query retrieves the orders for each user.
+
+This increases database load and affects performance.
+
+To solve it, I can use:
+
+**1. Join Fetch**
+
+Fetch the required related entities using a join.
+
+**2. Entity Graph**
+
+Use JPA's `@EntityGraph` to specify the relationships that should be fetched.
+
+**3. Custom Queries**
+
+Write a custom query to retrieve the required data in fewer database calls.
+
+I would also inspect whether lazy loading is causing additional queries.
+
+After implementing the solution, I would check the SQL logs again to confirm that the query count has reduced.
+
+**Key concepts:** N+1 problem, Hibernate, JPA, lazy loading, join fetch, `@EntityGraph`.
+
+---
+
+## 7. Lazy Initialization
+
+### Q7. One API is throwing a `LazyInitializationException` in production. How would you identify and fix it?
+
+**Answer:**
+
+This exception generally occurs in Hibernate or JPA when a lazy-loaded field is accessed after the Hibernate session or persistence context has been closed.
+
+For example, suppose I fetch an employee, but the employee's department is configured for lazy loading. If I try to access the department outside the transaction, Hibernate may throw a `LazyInitializationException`.
+
+I would:
+
+1. Identify which lazy-loaded field is causing the exception.
+2. Check where the field is accessed and whether the transaction is still active.
+3. Fetch the required data within the transaction.
+
+Possible solutions include:
+
+- Using `JOIN FETCH`.
+- Using `@EntityGraph`.
+- Creating a DTO projection that fetches only the required fields.
+
+I would avoid making every relationship eager because that can introduce unnecessary database queries and performance problems.
+
+The best approach is to fetch only the data required by the API.
+
+**Key concepts:** Lazy loading, Hibernate session, persistence context, DTO, `JOIN FETCH`, `@EntityGraph`.
+
+---
+
+## 8. Message Processing
+
+### Q8. Messages are processed from Kafka or RabbitMQ, but the same message is processed twice. How would you handle duplicate processing?
+
+**Answer:**
+
+I would first recognize that messaging systems can deliver the same message more than once. Therefore, the consumer should be designed to handle duplicate messages safely.
+
+I would implement idempotent processing.
+
+**Idempotency** means that processing the same message multiple times should not produce an incorrect final result.
+
+My approach would be:
+
+1. Include a unique message ID or transaction ID in every message.
+2. Before processing a message, check whether its ID has already been processed.
+3. If the message ID already exists, skip processing.
+4. If it is new, process the message and store its ID as processed.
+
+For example, in a payment system, this prevents duplicate payments. Similarly, it can prevent duplicate orders or notifications.
+
+**Key concepts:** Kafka, RabbitMQ, idempotency, message ID, duplicate processing.
+
+---
+
+## 9. Event Reliability
+
+### Q9. One microservice publishes an event, but the consumer service is down at that time. How would you make sure the event is not lost?
+
+**Answer:**
+
+I would use a message broker such as Kafka or RabbitMQ instead of making the producer directly dependent on the consumer.
+
+The flow would be:
+
+1. The producer publishes an event to Kafka or RabbitMQ.
+2. The message is stored in the topic or queue.
+3. If the consumer is unavailable, the message remains available in the broker.
+4. When the consumer comes back online, it reads and processes the message.
+
+In Kafka, consumer offsets help track message-processing progress.
+
+In RabbitMQ, acknowledgements confirm successful message processing.
+
+If processing repeatedly fails, I can retry the message and eventually move it to a Dead Letter Queue (DLQ).
+
+This makes event processing more reliable even when a consumer service is temporarily unavailable.
+
+**Key concepts:** Kafka, RabbitMQ, message persistence, consumer offsets, acknowledgements, retries, Dead Letter Queue.
+
+---
+
+## 10. Bean Resolution
+
+### Q10. You have two implementations of the same interface, and Spring is confused about which bean to inject. How would you solve this?
+
+**Answer:**
+
+This happens when Spring finds multiple beans of the same type and cannot determine which implementation should be injected.
+
+For example, suppose I have two payment services:
+
+- CreditCardPaymentService
+- UpiPaymentService
+
+Both implement the same `PaymentService` interface.
+
+I can resolve this using `@Qualifier` or `@Primary`.
+
+**1. `@Qualifier`**
+
+I can specify exactly which bean should be injected.
+
+```
+@Service("creditCardPayment")
+public class CreditCardPaymentService implements PaymentService {
+}
+```
+
+```
+@Autowired
+@Qualifier("creditCardPayment")
+private PaymentService paymentService;
+```
+
+**2. `@Primary`**
+
+If one implementation should be selected by default, I can mark it with `@Primary`.
+
+```
+@Primary
+@Service
+public class CreditCardPaymentService implements PaymentService {
+}
+```
+
+I would use `@Primary` for the default implementation and `@Qualifier` when I need explicit control.
+
+**Key concepts:** Dependency injection, multiple beans, `@Autowired`, `@Qualifier`, `@Primary`.
+
+---
+
+## 11. Securing Spring Boot Actuator
+
+### Q11. Actuator is enabled in your production application, but you do not want everyone to access health metrics or environment details. How would you secure it?
+
+**Answer:**
+
+I would avoid exposing every Actuator endpoint publicly because some endpoints can reveal sensitive application information.
+
+For example:
+
+- `/actuator/beans`
+- `/actuator/configprops`
+- `/actuator/env`
+
+I would expose only the endpoints required for monitoring. Usually, `/actuator/health` and `/actuator/info` may be sufficient, depending on the application.
+
+I would secure the Actuator endpoints using Spring Security.
+
+I can also create a separate role, such as `ACTUATOR_ADMIN`, and allow only authorized administrators or monitoring tools to access sensitive endpoints.
+
+In production, Actuator endpoints should be exposed carefully and protected with appropriate access controls.
+
+**Key concepts:** Spring Boot Actuator, endpoint exposure, Spring Security, role-based access control.
+
+---
+
+## 12. Secret Management
+
+### Q12. In production, application secret keys and database passwords should not be kept in `application.properties`. How would you manage them securely?
+
+**Answer:**
+
+I would never hardcode passwords or secret keys in the source code or store production credentials directly in application properties.
+
+Normal configuration can be maintained in properties or YAML files, but sensitive configuration should be stored externally.
+
+Possible approaches include:
+
+- Environment variables.
+- Spring Cloud Config Server.
+- HashiCorp Vault.
+- AWS Secrets Manager.
+- Azure Key Vault.
+- Kubernetes Secrets.
+
+The application retrieves the required secrets from the external configuration or secret-management system at runtime.
+
+This improves security and makes secret rotation easier without changing application code.
+
+**Key concepts:** Externalized configuration, environment variables, secret management, Vault, AWS Secrets Manager, Azure Key Vault, Kubernetes Secrets.
+
+---
+
+## 13. Microservices Security
+
+### Q13. Authentication is handled by one service, but other microservices also need to know whether the user is valid. How would you design this securely?
+
+**Answer:**
+
+I would centralize authentication in a dedicated authentication service.
+
+The flow would be:
+
+1. The user sends their username and password to the authentication service.
+2. The authentication service validates the credentials.
+3. After successful authentication, it generates a token, usually a JWT.
+4. The client sends this token with every subsequent request.
+5. The API Gateway validates the token.
+6. Other microservices can also validate the token and inspect its claims.
+
+The token can contain information such as the user ID and roles.
+
+Each service can use the user's roles and permissions to decide whether to allow or reject an operation.
+
+This avoids requiring every microservice to authenticate the user independently.
+
+For internal service communication, I can also introduce service-to-service authentication where required.
+
+**Key concepts:** Authentication service, JWT, API Gateway, authorization, service-to-service authentication.
+
+---
+
+## 14. API Rate Limiting
+
+### Q14. Your application calls three external APIs, and one of them has rate limits. How would you avoid crossing those limits while keeping your application stable?
+
+**Answer:**
+
+First, I would understand the rate limit imposed by the external API.
+
+For example, if the external API allows only 100 requests per minute, I would implement rate limiting in my application to stay within that limit.
+
+I can use libraries such as Bucket4j or Resilience4j.
+
+I would also:
+
+1. Introduce caching for data that does not change frequently.
+2. Avoid unnecessary calls to the external API.
+3. Retry only temporary failures.
+4. Use exponential backoff instead of retrying immediately.
+5. Return a meaningful message or fallback response when the rate limit is reached.
+
+This prevents excessive requests and helps keep the application stable.
+
+**Key concepts:** Rate limiting, Bucket4j, Resilience4j, caching, exponential backoff.
+
+---
+
+## 15. Caching Master Data
+
+### Q15. One API fetches the same master data repeatedly from the database. How would you use caching to improve performance?
+
+**Answer:**
+
+First, I would identify data that is frequently read but does not change often.
+
+Examples include:
+
+- Country lists.
+- State lists.
+- City lists.
+- Product categories.
+- Configuration data.
+
+I would enable caching using `@EnableCaching` and apply `@Cacheable` to the method that retrieves the master data.
+
+```
+@EnableCaching
+@SpringBootApplication
+public class Application {
+}
+```
+
+```
+@Cacheable(value = "countries")
+public List<Country> getCountries() {
+    return countryRepository.findAll();
+}
+```
+
+The first request retrieves data from the database and stores it in the cache. Subsequent requests can retrieve the same data from the cache, reducing database calls.
+
+If the master data changes, I would update or clear the cache using `@CachePut` or `@CacheEvict`.
+
+**Key concepts:** `@EnableCaching`, `@Cacheable`, `@CachePut`, `@CacheEvict`, master data.
+
+---
+
+## 16. Pagination and Sorting
+
+### Q16. One API returns thousands of records, and the frontend becomes slow. How would you implement pagination and sorting?
+
+**Answer:**
+
+I would avoid returning thousands of records in a single API response because it increases response time and affects frontend performance.
+
+I would implement pagination and sorting using Spring Data JPA's `Pageable` interface.
+
+The frontend would send:
+
+- Page number.
+- Page size.
+- Sort field.
+- Sort direction.
+
+For example:
+
+```
+Pageable pageable = PageRequest.of(
+    0,
+    20,
+    Sort.by("name").ascending()
+);
+```
+
+The repository can accept the `Pageable` parameter:
+
+```
+Page<Employee> findAll(Pageable pageable);
+```
+
+Spring Data JPA retrieves only the requested page and provides pagination information such as total records and total pages.
+
+This makes the API more efficient and easier for the frontend to consume.
+
+**Key concepts:** `Pageable`, `PageRequest`, `Page`, `Sort`, Spring Data JPA.
+
+---
+
+## 17. Environment Configurations
+
+### Q17. Your application has different database URLs for development, QA and production. How would you manage this without changing code every time?
+
+**Answer:**
+
+I would use Spring Boot profiles to manage environment-specific configuration.
+
+I can create separate configuration files:
+
+- `application-dev.properties`
+- `application-qa.properties`
+- `application-prod.properties`
+
+Each file contains the configuration for its respective environment, including the database URL.
+
+When starting the application, I activate the required profile.
+
+For example:
+
+```
+spring.profiles.active=dev
+```
+
+Alternatively, I can activate the profile through an environment variable or deployment configuration.
+
+The same application code is used across environments; only the configuration changes.
+
+**Key concepts:** Spring Profiles, `application.properties`, environment-specific configuration.
+
+---
+
+## 18. File Storage Handling
+
+### Q18. Users upload PDF or image files. How would you handle file upload, validation, storage and retrieval in Spring Boot?
+
+**Answer:**
+
+First, I would create a POST API for uploading files. In the controller, I would use Spring's `MultipartFile`.
+
+I would validate the uploaded file by checking:
+
+1. File type.
+2. File size.
+3. File extension.
+4. Whether the file is empty.
+5. Actual content type rather than trusting only the file name.
+
+After validation, I would store the file in an external storage system, such as AWS S3 or Azure Blob Storage.
+
+I would save the file metadata in the database. This metadata could include:
+
+- File name.
+- File path or storage key.
+- File type.
+- Uploaded user.
+- Upload timestamp.
+
+For retrieval, I would use the stored metadata to locate the file and return the file or its URL.
+
+**Key concepts:** `MultipartFile`, file validation, AWS S3, Azure Blob Storage, file metadata.
+
+---
+
+## 19. File Persistence After Deployment
+
+### Q19. Uploaded files are stored inside the application server folder, but they disappear after deployment. What would you change?
+
+**Answer:**
+
+I would avoid storing uploaded files inside the application server's local folder in production.
+
+There are two problems:
+
+1. During redeployment, the application folder may be deleted or replaced.
+2. If the application runs multiple instances, a file stored on one server may not be accessible from another instance.
+
+I would move file storage outside the application.
+
+Better options include:
+
+- AWS S3.
+- Azure Blob Storage.
+- Google Cloud Storage.
+- Shared file storage.
+
+The application would store only the file metadata in the database, while the actual file remains in external storage.
+
+This makes file handling more reliable and scalable.
+
+**Key concepts:** Persistent storage, cloud object storage, stateless application instances, file metadata.
+
+---
+
+## 20. Asynchronous Processing
+
+### Q20. You need to send a welcome email after user registration, but email sending should not slow down the registration API. How would you design this?
+
+**Answer:**
+
+I would complete the registration operation first and send the welcome email asynchronously.
+
+The flow would be:
+
+1. Receive the registration request.
+2. Validate and save the user's details in the database.
+3. Trigger email processing asynchronously.
+4. Return the registration response without making the user wait for the email operation.
+
+One simple approach is Spring's `@Async` annotation. The email method executes on a separate thread.
+
+Another approach, particularly useful in a microservices architecture, is event-driven processing:
+
+- The registration service publishes a `UserRegistered` event to Kafka or RabbitMQ.
+- The email service consumes the event.
+- The email service sends the welcome email.
+
+If the email service is slow or unavailable, registration does not need to wait for email delivery.
+
+**Key concepts:** `@Async`, asynchronous processing, Kafka, RabbitMQ, event-driven architecture.
+
+---
+
+## 21. Request Tracing and Logging
+
+### Q21. You need to trace a request across multiple microservices to find where it failed. How would you implement logging and tracing?
+
+**Answer:**
+
+I would generate a unique trace ID for every incoming request.
+
+The same trace ID should travel across all the microservices involved in processing that request.
+
+For example, when Service A calls Service B, it should pass the trace ID through the request headers.
+
+Each service should include that trace ID in its application logs.
+
+When an issue occurs, I can search for the same trace ID across the logs of all services and identify where the request failed.
+
+I can use tools such as:
+
+- Micrometer Tracing.
+- Zipkin.
+- Grafana Tempo.
+- ELK Stack.
+- Splunk.
+
+I would also log important operations, such as request receipt, external API calls, database operations and errors.
+
+**Key concepts:** Distributed tracing, trace ID, correlation ID, centralized logging, Micrometer Tracing, Zipkin.
+
+---
+
+## 22. Deployment Pipeline
+
+### Q22. Your Spring Boot application needs to be deployed using Docker and CI/CD. What steps would you follow from code commit to deployment?
+
+**Answer:**
+
+I would configure a CI/CD pipeline that automates the build, testing, packaging and deployment process.
+
+The flow would be:
+
+1. **Code commit:** The developer pushes code to Git.
+2. **Pipeline trigger:** The CI/CD pipeline starts automatically.
+3. **Build:** The pipeline builds the Spring Boot application.
+4. **Testing:** It executes unit tests and integration tests, if configured.
+5. **Packaging:** It generates the application JAR file.
+6. **Docker image:** It creates a Docker image using the Dockerfile.
+7. **Image registry:** It pushes the image to a registry such as Docker Hub, AWS ECR or Azure Container Registry.
+8. **Deployment:** It deploys the application to a server or Kubernetes environment.
+9. **Configuration:** Environment-specific settings are supplied through profiles, environment variables, ConfigMaps or Secrets.
+10. **Verification:** After deployment, I verify application health using Actuator.
+
+If a deployment fails, the pipeline should stop or trigger a rollback mechanism.
+
+**Key concepts:** Git, CI/CD, Docker, Dockerfile, JAR, image registry, Kubernetes, Actuator, rollback.
+
+---
+
+## 23. Internationalization
+
+### Q23. Your Spring Boot application needs to support multiple languages, such as English and Hindi. How would you implement internationalization?
+
+**Answer:**
+
+I would use Spring Boot's internationalization support.
+
+First, I would create separate message property files for different languages.
+
+For example:
+
+- `messages.properties`
+- `messages_hi.properties`
+
+The English messages would be maintained in the default file, and Hindi messages would be maintained in the Hindi file.
+
+I would configure a `LocaleResolver` to determine the user's preferred language.
+
+The language can be identified through:
+
+- The `Accept-Language` request header.
+- User profile settings.
+- Request parameters.
+
+Spring would then select the appropriate message file based on the resolved locale.
+
+For example, if the request specifies Hindi as the preferred language, the application can return Hindi messages.
+
+**Key concepts:** Internationalization (i18n), localization, `MessageSource`, `LocaleResolver`, message property files.
+
+---
+
+## 24. Spring WebFlux
+
+### Q24. Your project has an API that needs to handle a very high number of concurrent requests without blocking threads. When would you choose Spring WebFlux, and what mistakes would you avoid?
+
+**Answer:**
+
+I would choose Spring WebFlux when I need a non-blocking, reactive API that can handle a large number of concurrent requests.
+
+It is especially useful when the application spends significant time waiting for external systems, such as:
+
+- External API calls.
+- Streaming data.
+- Real-time data processing.
+
+In WebFlux, I would use `Mono` and `Flux`.
+
+- `Mono` represents zero or one result.
+- `Flux` represents multiple results.
+
+I would avoid blocking operations inside the reactive flow.
+
+For example:
+
+1. Avoid using blocking database calls directly in the reactive pipeline.
+2. Prefer reactive database drivers where possible.
+3. Avoid `Thread.sleep()`.
+4. Avoid unnecessary calls to `.block()`.
+
+If blocking code is introduced into WebFlux, the benefits of non-blocking processing are reduced.
+
+The important principle is to use WebFlux when the overall processing flow can remain mostly non-blocking.
+
+**Key concepts:** Spring WebFlux, reactive programming, `Mono`, `Flux`, non-blocking I/O, reactive database drivers.
+
+---
+
+# Quick Revision Table
+
+| No. | Scenario                                 | Important concepts                             |
+| --- | ---------------------------------------- | ---------------------------------------------- |
+| 1   | Transaction not rolling back             | `@Transactional`, rollback rules, Spring proxy |
+| 2   | Slow API under high traffic              | Actuator, profiling, caching, scaling          |
+| 3   | Downstream service is slow or down       | Timeout, retry, fallback, circuit breaker      |
+| 4   | JWT has outdated permissions             | Token expiry, token versioning                 |
+| 5   | Cache returns stale data                 | `@CacheEvict`, `@CachePut`                     |
+| 6   | N+1 query problem                        | Join fetch, Entity Graph                       |
+| 7   | Lazy initialization exception            | Lazy loading, DTO, transaction                 |
+| 8   | Duplicate message processing             | Idempotency, unique message ID                 |
+| 9   | Consumer service is down                 | Kafka, RabbitMQ, offsets, DLQ                  |
+| 10  | Multiple implementations of an interface | `@Qualifier`, `@Primary`                       |
+| 11  | Securing Actuator                        | Endpoint exposure, Spring Security             |
+| 12  | Managing production secrets              | Vault, environment variables, Secret Manager   |
+| 13  | Centralized authentication               | JWT, API Gateway, service authentication       |
+| 14  | External API rate limits                 | Bucket4j, caching, backoff                     |
+| 15  | Repeated master-data queries             | `@Cacheable`, `@EnableCaching`                 |
+| 16  | Large API responses                      | `Pageable`, `PageRequest`, sorting             |
+| 17  | Different environment configurations     | Spring Profiles                                |
+| 18  | Uploading files                          | `MultipartFile`, validation, cloud storage     |
+| 19  | Files disappearing after deployment      | Persistent external storage                    |
+| 20  | Email should not delay registration      | `@Async`, Kafka, RabbitMQ                      |
+| 21  | Tracing requests across services         | Trace ID, Micrometer, Zipkin                   |
+| 22  | Docker and CI/CD deployment              | Git, build, test, Docker, Kubernetes           |
+| 23  | Supporting multiple languages            | i18n, `MessageSource`, `LocaleResolver`        |
+| 24  | High-concurrency non-blocking APIs       | WebFlux, Mono, Flux                            |
+
+---
+
+# Important Interview Preparation Note
+
+For each scenario, prepare your answer in this order:
+
+1. **Problem:** Explain what is happening.
+2. **Root cause:** Explain why it might be happening.
+3. **Solution:** Describe how you would fix it.
+4. **Spring Boot implementation:** Mention the annotation, class, library or configuration you would use.
+5. **Project example:** Explain where you would apply it in a real application.
+
+This structure helps demonstrate practical project knowledge rather than only theoretical understanding.
+
+The most important next step is to practise explaining these 24 scenarios with small Spring Boot code examples, especially transactions, caching, JPA performance, Resilience4j, JWT security and WebFlux.
